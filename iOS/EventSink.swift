@@ -10,7 +10,8 @@ final class EventSink {
     private(set) var fileURL: URL?
     private(set) var sessionDirectoryURL: URL?
 
-    func open(sessionID: String, sessionFolderName: String, host: String, port: UInt16) throws {
+    func open(sessionID: String, sessionFolderName: String, host: String, port: UInt16,
+              enableUDP: Bool = false) throws {
         let directory = try Self.sessionDirectory(named: sessionFolderName)
         let url = directory.appendingPathComponent("iphone-events-\(sessionID).ndjson")
         FileManager.default.createFile(atPath: url.path, contents: nil)
@@ -18,7 +19,7 @@ final class EventSink {
         fileURL = url
         sessionDirectoryURL = directory
 
-        guard !host.trimmingCharacters(in: .whitespaces).isEmpty,
+        guard enableUDP, !host.trimmingCharacters(in: .whitespaces).isEmpty,
               let nwPort = NWEndpoint.Port(rawValue: port) else { return }
         let connection = NWConnection(host: NWEndpoint.Host(host), port: nwPort, using: .udp)
         connection.start(queue: networkQueue)

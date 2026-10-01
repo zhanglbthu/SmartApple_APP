@@ -8,16 +8,24 @@
 在其他 Mac 上使用时，先安装 Xcode，打开 `SensorRead.xcodeproj`，并为两个 target
 选择自己的 Signing Team；仓库中的 Team ID 仅为原开发环境配置。
 
-当前版本加入 Watch 控制命令重试、连接恢复后 UWB 握手重启、Nearby Interaction
-会话失效自动重建，以及实时发送失败后通过 WatchConnectivity 后台队列补传。
+当前版本（build 9）采用两端独立本地采集，取消 Watch 传感器实时批次及其后台排队。
+WatchConnectivity 仅承载控制、状态、UWB 令牌和停止后的文件汇总。两端均需更新到新版。
 
 原生 iOS + watchOS 多模态人体动作采集器。它可由统一的开始/结束按钮控制采集，把全部事件保存为
-NDJSON，并通过 UDP 实时发送到电脑。当前数据协议为 `schemaVersion: 2`，每个来源/模态都有独立的
+NDJSON，可选通过 UDP 将手机/AirPods 事件实时发送到电脑（默认关闭）。当前数据协议为 `schemaVersion: 2`，每个来源/模态都有独立的
 `sequenceNumber`，电脑端可据此统计 UDP 丢包。
 
 iPhone 与 Apple Watch 均提供全系统开始/结束按钮。Watch 按钮通过即时 WatchConnectivity 消息通知
 iPhone，由 iPhone 创建统一会话并同时控制 iPhone、AirPods 和 Watch；接收端 IP、端口及可选人体
-骨架开关沿用 iPhone App 中最后保存的设置。iPhone 不可达时控制命令不会离线排队，避免稍后误启动。
+骨架和 UDP 开关沿用 iPhone App 中最后保存的设置。开始请求只做短时即时重试，30 秒过期；
+停止请求持久保存、后台排队并即时重试，确认前不能开启下一段。旧会话停止请求不会停止新会话。
+
+Watch 停止后独立完成 NDJSON/WAV，再传到手机；断连时原文件保留，连接恢复或空闲时重试。
+手机按文件大小校验、暂存后替换，写入每个文件的 `*.receipt.json`，然后通知 Watch 确认。
+手表“本地已停止”与“手机已确认停止”不同；文件全部确认后才显示已传到手机。
+UDP 开启时也不包含手表实时事件；手机侧 UWB 仍可实时发送。两端 UWB 回调及本地记录保留，
+令牌交换独立于 start，失败不再堆积旧握手消息。实际息屏测距连续性需要真机对照验证。
+更新时会取消旧版本尚未完成的实时事件批次，不删除任何本地记录或整文件传输。
 
 ## 各设备模态、维度与帧率
 
@@ -74,8 +82,7 @@ iPhone，由 iPhone 创建统一会话并同时控制 iPhone、AirPods 和 Watch
 | 兼容 AirPods | `headphone_activity` | 静止、步行、跑步、乘车、骑行、未知、置信度 | 7 | iOS 18+、兼容型号，分类更新 |
 | 兼容 AirPods | `headphone_status` | 耳机状态枚举 | 1 | iOS 18+、兼容型号，状态变化 |
 
-Watch 端按照原始采样时间戳采集，但每 0.1 秒把事件批量传给 iPhone，因此网络到达呈约 10 Hz 的
-批次，不代表 IMU 读取频率降低为 10 Hz。HealthKit 指标取决于手表型号、佩戴质量和运动状态，并非
+Watch 端按照原始采样时间戳本地保存，不再向 iPhone 发送实时批次。HealthKit 指标取决于手表型号、佩戴质量和运动状态，并非
 每次会话都会产生。Apple 不开放 AirPods 每只耳塞的原始 IMU，只提供融合后的头部运动。
 
 每次开始采集后的前 8 秒，iPhone 和 Watch 会对 raw IMU 服务做有限重试，并写入
@@ -103,7 +110,8 @@ Tools/run_simulator_demo.sh
 
 ## 数据与电脑接收
 
-App 中填写 Mac 的局域网 IP 与端口（默认 9000）。每个 UDP 数据包是一条 UTF-8 JSON：
+如需实时观察，在 App 中开启 UDP 并填写电脑的局域网 IP 与端口（默认 9000）。
+关闭时仍完整本地采集。每个 UDP 数据包是一条 UTF-8 JSON：
 
 ```json
 {"schemaVersion":2,"sessionID":"...","source":"iphone","sensor":"accelerometer","timestampUnixNs":0,"monotonicSeconds":0,"sequenceNumber":0,"values":{"x_g":0,"y_g":0,"z_g":-1}}

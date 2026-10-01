@@ -36,6 +36,7 @@ final class SensorRecorder: NSObject, ObservableObject {
     private var sessionFolderName = ""
     private var sessionStartDate: Date?
     private var synchronizedAudioStartUnixS: TimeInterval = 0
+    private var sessionUDPEnabled = false
     private var sequences: [String: UInt64] = [:]
     private var batteryTimer: Timer?
     private var headphoneRetryTimer: Timer?
@@ -67,7 +68,8 @@ final class SensorRecorder: NSObject, ObservableObject {
         activateWatchSession()
     }
 
-    func start(host: String, port: UInt16, enableBodyTracking: Bool = false) {
+    func start(host: String, port: UInt16, enableBodyTracking: Bool = false,
+               enableUDP: Bool = false) {
         guard !isRecording else { return }
         lastError = nil
         sessionID = UUID().uuidString
@@ -75,10 +77,11 @@ final class SensorRecorder: NSObject, ObservableObject {
         sessionStartDate = startDate
         sessionFolderName = Self.makeSessionFolderName(date: startDate, sessionID: sessionID)
         synchronizedAudioStartUnixS = startDate.timeIntervalSince1970 + 1.5
+        sessionUDPEnabled = enableUDP
         sequences.removeAll(keepingCapacity: true)
         do {
             try sink.open(sessionID: sessionID, sessionFolderName: sessionFolderName,
-                          host: host, port: port)
+                          host: host, port: port, enableUDP: enableUDP)
         } catch {
             lastError = "无法创建采集文件：\(error.localizedDescription)"
             return
@@ -206,7 +209,8 @@ final class SensorRecorder: NSObject, ObservableObject {
         let portValue = (defaults.object(forKey: "receiverPort") as? NSNumber)?.intValue ?? 9000
         let port = UInt16(clamping: portValue)
         let enableBodyTracking = defaults.bool(forKey: "enableBodyTracking")
-        start(host: host, port: port, enableBodyTracking: enableBodyTracking)
+        start(host: host, port: port, enableBodyTracking: enableBodyTracking,
+              enableUDP: defaults.bool(forKey: "enableUDP"))
     }
 
     private func emitWatchControlEvent(command: String, timestamp: TimeInterval?,
@@ -658,7 +662,6 @@ final class SensorRecorder: NSObject, ObservableObject {
                     "stage": 91, "reason": reasonCode
                 ])
                 self.startNearbyInteraction()
-                self.sendWatchCommand("start", sessionID: self.sessionID)
             }
         }
     }
@@ -693,7 +696,7 @@ final class SensorRecorder: NSObject, ObservableObject {
         }
         nearbyHandshakeAttempt += 1
         var message: [String: Any] = [
-            "command": "start",
+            "command": "uwb",
             "sessionID": sessionID,
             "sessionFolderName": sessionFolderName,
             "audioStartUnixS": synchronizedAudioStartUnixS,
@@ -707,7 +710,6 @@ final class SensorRecorder: NSObject, ObservableObject {
         ])
         if WCSession.default.isReachable {
             WCSession.default.sendMessage(message, replyHandler: nil) { failedMessage in
-                WCSession.default.transferUserInfo(message)
                 Task { @MainActor [weak self] in
                     self?.emit(source: "iphone", sensor: "uwb_status", values: [
                         "stage": 21,
@@ -715,8 +717,6 @@ final class SensorRecorder: NSObject, ObservableObject {
                     ])
                 }
             }
-        } else {
-            WCSession.default.transferUserInfo(message)
         }
     }
 
@@ -779,6 +779,7 @@ final class SensorRecorder: NSObject, ObservableObject {
         guard WCSession.default.activationState == .activated else { return }
         var message: [String: Any] = [
             "command": command,
+            "issuedAt": Date().timeIntervalSince1970,
             "sessionID": sessionID,
             "sessionFolderName": sessionFolderName
         ]
@@ -791,9 +792,9 @@ final class SensorRecorder: NSObject, ObservableObject {
         }
         if WCSession.default.isReachable {
             WCSession.default.sendMessage(message, replyHandler: nil) { _ in
-                WCSession.default.transferUserInfo(message)
+                if command == "stop" { WCSession.default.transferUserInfo(message) }
             }
-        } else {
+        } else if command == "stop" {
             WCSession.default.transferUserInfo(message)
         }
     }
@@ -828,6 +829,9 @@ final class SensorRecorder: NSObject, ObservableObject {
         iso.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         var manifest: [String: Any] = [
             "schemaVersion": 1,
+            "collectionMode": "independent_local",
+            "watchLiveStreamEnabled": false,
+            "udpEnabled": sessionUDPEnabled,
             "sessionID": sessionID,
             "sessionFolderName": sessionFolderName,
             "startedAtISO8601": iso.string(from: startDate),
@@ -1057,6 +1061,7 @@ extension SensorRecorder: WCSessionDelegate {
             return
         }
         let requestedSessionID = message["sessionID"] as? String
+        let requestID = message["controlRequestID"] as? String
         let controlTimestamp = message["controlTimestamp"] as? TimeInterval
         let controlMonotonic = message["controlMonotonic"] as? TimeInterval
         Task { @MainActor in
@@ -1064,15 +1069,37 @@ extension SensorRecorder: WCSessionDelegate {
             var accepted = true
             switch command {
             case "start":
+                guard let controlTimestamp,
+                      abs(Date().timeIntervalSince1970 - controlTimestamp) < 30 else {
+                    replyHandler(["accepted": false, "error": "开始请求已过期，请重新点击"])
+                    return
+                }
+                // Retrying a completed request must not create another recording.
+                var handled = UserDefaults.standard.dictionary(forKey: "sensorread.startRequests.v2") as? [String: String] ?? [:]
+                if let requestID, let previous = handled[requestID],
+                   !isRecording || previous != sessionID {
+                    replyHandler(["accepted": false, "error": "该开始请求已执行并结束，请重新点击"])
+                    return
+                }
                 if !isRecording { startFromWatchControl() }
                 else { sendWatchCommand("start", sessionID: sessionID) }
                 accepted = isRecording
+                if accepted, let requestID {
+                    if handled.count >= 100 { handled.removeAll() }
+                    handled[requestID] = sessionID
+                    UserDefaults.standard.set(handled, forKey: "sensorread.startRequests.v2")
+                }
                 if accepted {
                     emitWatchControlEvent(command: command, timestamp: controlTimestamp,
                                           monotonic: controlMonotonic, wasRecording: wasRecording,
                                           accepted: true)
                 }
             case "stop":
+                guard requestedSessionID == sessionID else {
+                    replyHandler(["accepted": true, "isRecording": false,
+                                  "sessionID": requestedSessionID ?? ""])
+                    return
+                }
                 if isRecording {
                     emitWatchControlEvent(command: command, timestamp: controlTimestamp,
                                           monotonic: controlMonotonic, wasRecording: wasRecording,
@@ -1121,7 +1148,7 @@ extension SensorRecorder: WCSessionDelegate {
         let controlMonotonic = message["controlMonotonic"] as? TimeInterval
         Task { @MainActor in
             guard command == "stop" else { return }
-            if isRecording {
+            if isRecording, requestedSessionID == sessionID {
                 emitWatchControlEvent(command: command, timestamp: controlTimestamp,
                                       monotonic: controlMonotonic, wasRecording: true,
                                       accepted: true)
@@ -1176,10 +1203,26 @@ extension SensorRecorder: WCSessionDelegate {
         let proposedName = (metadata?["filename"] as? String) ?? temporaryURL.lastPathComponent
         let safeName = URL(fileURLWithPath: proposedName).lastPathComponent
         let destination = directory.appendingPathComponent(safeName)
-        if FileManager.default.fileExists(atPath: destination.path) {
-            try FileManager.default.removeItem(at: destination)
+        let sourceSize = try temporaryURL.resourceValues(forKeys: [.fileSizeKey]).fileSize ?? 0
+        if let expected = metadata?["fileSizeBytes"] as? Int, sourceSize != expected {
+            throw NSError(domain: "SensorRead.Transfer", code: 1,
+                          userInfo: [NSLocalizedDescriptionKey: "手表文件大小校验失败"])
         }
-        try FileManager.default.copyItem(at: temporaryURL, to: destination)
+        let staged = directory.appendingPathComponent(".incoming-\(UUID().uuidString)")
+        try FileManager.default.copyItem(at: temporaryURL, to: staged)
+        defer { try? FileManager.default.removeItem(at: staged) }
+        if FileManager.default.fileExists(atPath: destination.path) {
+            _ = try FileManager.default.replaceItemAt(destination, withItemAt: staged)
+        } else {
+            try FileManager.default.moveItem(at: staged, to: destination)
+        }
+        let receipt: [String: Any] = [
+            "filename": safeName, "sizeBytes": sourceSize,
+            "receivedAtISO8601": ISO8601DateFormatter().string(from: Date()),
+            "sizeChecked": metadata?["fileSizeBytes"] != nil
+        ]
+        let receiptData = try JSONSerialization.data(withJSONObject: receipt, options: [.prettyPrinted, .sortedKeys])
+        try receiptData.write(to: directory.appendingPathComponent(safeName + ".receipt.json"), options: .atomic)
         return (safeName, folderName)
     }
 
@@ -1191,13 +1234,6 @@ extension SensorRecorder: WCSessionDelegate {
                 runNearbyInteraction(peerTokenData: token)
             }
         }
-        guard let data = message["events"] as? Data,
-              let events = try? JSONDecoder().decode([SensorEvent].self, from: data) else { return }
-        Task { @MainActor in
-            guard isRecording else { return }
-            let matching = events.filter { $0.sessionID == sessionID }
-            matching.forEach(sink.write)
-            eventCount += matching.count
-        }
+        // Watch sensor records arrive only as finalized files, never as a live stream.
     }
 }

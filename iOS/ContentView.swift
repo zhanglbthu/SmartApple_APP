@@ -4,6 +4,7 @@ struct ContentView: View {
     @EnvironmentObject private var recorder: SensorRecorder
     @AppStorage("receiverIP") private var receiverIP = "192.168.1.100"
     @AppStorage("receiverPort") private var receiverPort = 9000
+    @AppStorage("enableUDP") private var enableUDP = false
     @AppStorage("enableBodyTracking") private var enableBodyTracking = false
 
     var body: some View {
@@ -28,19 +29,21 @@ struct ContentView: View {
                     Button(recorder.isRecording ? "结束采集" : "开始采集") {
                         recorder.isRecording ? recorder.stop() :
                             recorder.start(host: receiverIP, port: UInt16(clamping: receiverPort),
-                                           enableBodyTracking: enableBodyTracking)
+                                           enableBodyTracking: enableBodyTracking, enableUDP: enableUDP)
                     }
                     .buttonStyle(.borderedProminent)
                     .tint(recorder.isRecording ? .red : .blue)
                 }
 
                 Section("PC 实时 UDP 接收端") {
+                    Toggle("启用 UDP 实时传输", isOn: $enableUDP)
+                        .disabled(recorder.isRecording)
                     TextField("IP 地址", text: $receiverIP)
                         .textInputAutocapitalization(.never)
                         .keyboardType(.numbersAndPunctuation)
                     TextField("端口", value: $receiverPort, format: .number)
                         .keyboardType(.numberPad)
-                    Text("修改将在下一次开始采集时生效。每个 UDP 包是一条 UTF-8 JSON 记录。")
+                    Text("默认仅本地保存。开启后仅发送手机和 AirPods 的事件（包括手机侧 UWB）。手表独立保存，结束后传回文件。修改将在下一次采集生效。")
                         .font(.footnote).foregroundStyle(.secondary)
                 }
 

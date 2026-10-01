@@ -15,6 +15,7 @@ final class WatchRecorder: NSObject, ObservableObject {
     @Published private(set) var isControlPending = false
     @Published private(set) var controlStatus = "正在连接 iPhone"
     @Published private(set) var audioStatus = "未启动"
+    @Published private(set) var fileTransferStatus = "文件将在停止后传回手机"
 
     private let motion = CMMotionManager()
     private let altimeter = CMAltimeter()
@@ -35,8 +36,13 @@ final class WatchRecorder: NSObject, ObservableObject {
     private var sessionID = ""
     private var sessionFolderName = ""
     private var sequences: [String: UInt64] = [:]
-    private var pendingEvents: [SensorEvent] = []
-    private var flushTimer: Timer?
+    private var stopRetryTimer: Timer?
+    private var fileRetryTimer: Timer?
+    private var stopRequestInFlight = false
+    private var pendingStopMessage: [String: Any]? {
+        get { UserDefaults.standard.dictionary(forKey: "sensorread.pendingStop.v2") }
+        set { UserDefaults.standard.set(newValue, forKey: "sensorread.pendingStop.v2") }
+    }
     private var batteryTimer: Timer?
     private var motionQueue: OperationQueue?
     private var rawMotionRetryTimer: Timer?
@@ -76,7 +82,6 @@ final class WatchRecorder: NSObject, ObservableObject {
         self.sessionID = sessionID
         self.sessionFolderName = sessionFolderName ?? "session-\(sessionID.prefix(8))"
         sequences.removeAll(keepingCapacity: true)
-        pendingEvents.removeAll(keepingCapacity: true)
         eventCount = 0
         lastError = nil
         do {
@@ -84,6 +89,8 @@ final class WatchRecorder: NSObject, ObservableObject {
                                     sessionFolderName: self.sessionFolderName)
         } catch {
             lastError = "无法创建手表本地事件文件：\(error.localizedDescription)"
+            controlStatus = "本地保存失败，未开始采集"
+            return
         }
         isRecording = true
 #if targetEnvironment(simulator)
@@ -103,9 +110,6 @@ final class WatchRecorder: NSObject, ObservableObject {
         startBattery()
         startNearbyInteraction(peerTokenData: peerTokenData)
 #endif
-        flushTimer = .scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
-            Task { @MainActor in self?.flush() }
-        }
     }
 
     func stop() {
@@ -135,8 +139,6 @@ final class WatchRecorder: NSObject, ObservableObject {
         nearbyRestartTimer = nil
         nearbyHasRanged = false
         uwbStatus = "已停止"
-        flushTimer?.invalidate()
-        flushTimer = nil
         batteryTimer?.invalidate()
         batteryTimer = nil
         demoTimer?.invalidate()
@@ -146,13 +148,16 @@ final class WatchRecorder: NSObject, ObservableObject {
         // close, and file-transfer work below. The UI and control reply can
         // respond immediately while files finish in the background.
         isRecording = false
-        flush()
+        UserDefaults.standard.set(sessionID, forKey: "sensorread.lastStoppedSession.v2")
         workoutSession?.end()
         workoutSession = nil
         workoutBuilder = nil
         let eventURL = localEventSink.close()
-        transferRecordingFile(eventURL, kind: "watch_events")
-        transferRecordingFile(audioURL, kind: "watch_audio")
+        // Enqueue files on the next actor turn so the stop control can be sent first.
+        Task { @MainActor [weak self] in
+            self?.transferRecordingFile(eventURL, kind: "watch_events")
+            self?.transferRecordingFile(audioURL, kind: "watch_audio")
+        }
     }
 
     private func startWatchAudio(scheduledUnixTime: TimeInterval) {
@@ -190,6 +195,7 @@ final class WatchRecorder: NSObject, ObservableObject {
         var pending = Set(UserDefaults.standard.stringArray(forKey: pendingFileTransfersKey) ?? [])
         pending.insert(identifier)
         UserDefaults.standard.set(Array(pending).sorted(), forKey: pendingFileTransfersKey)
+        fileTransferStatus = "待手机确认文件：\(pending.count) 个"
     }
 
     private func acknowledgeTransferredFile(filename: String, folderName: String) {
@@ -197,9 +203,16 @@ final class WatchRecorder: NSObject, ObservableObject {
         var pending = Set(UserDefaults.standard.stringArray(forKey: pendingFileTransfersKey) ?? [])
         pending.remove(identifier)
         UserDefaults.standard.set(Array(pending).sorted(), forKey: pendingFileTransfersKey)
+        fileTransferStatus = pending.isEmpty ? "文件已全部传到手机" : "待手机确认文件：\(pending.count) 个"
     }
 
     private func retryPendingFileTransfers() {
+        guard !isRecording else { return }
+        if fileRetryTimer == nil {
+            fileRetryTimer = .scheduledTimer(withTimeInterval: 30, repeats: true) { [weak self] _ in
+                Task { @MainActor in self?.retryPendingFileTransfers() }
+            }
+        }
         guard WCSession.isSupported(), WCSession.default.activationState == .activated,
               let root = try? WatchEventSink.recordingsDirectory() else { return }
         let outstanding = Set(WCSession.default.outstandingFileTransfers.compactMap { transfer -> String? in
@@ -208,6 +221,7 @@ final class WatchRecorder: NSObject, ObservableObject {
             return "\(folder)/\(filename)"
         })
         let pending = UserDefaults.standard.stringArray(forKey: pendingFileTransfersKey) ?? []
+        fileTransferStatus = pending.isEmpty ? "无待传文件" : "待手机确认文件：\(pending.count) 个"
         for identifier in pending where !outstanding.contains(identifier) {
             let components = identifier.split(separator: "/", maxSplits: 1).map(String.init)
             guard components.count == 2 else { continue }
@@ -226,7 +240,8 @@ final class WatchRecorder: NSObject, ObservableObject {
                 "sessionID": sessionID,
                 "sessionFolderName": folder,
                 "kind": kind,
-                "filename": filename
+                "filename": filename,
+                "fileSizeBytes": (try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0
             ])
         }
     }
@@ -258,6 +273,10 @@ final class WatchRecorder: NSObject, ObservableObject {
 
     func requestSystemToggle() {
         guard !isControlPending else { return }
+        if pendingStopMessage != nil {
+            retryPendingStop()
+            return
+        }
         let watchSession = WCSession.default
         phoneReachable = watchSession.isReachable
         let command = isRecording ? "stop" : "start"
@@ -275,7 +294,10 @@ final class WatchRecorder: NSObject, ObservableObject {
             // request below and stops its sensors independently.
             isControlPending = true
             controlStatus = "手表已停止，正在通知 iPhone…"
+            pendingStopMessage = message
             if isRecording { stop() }
+            queueReliableStop(message, using: watchSession)
+            return
         }
 
         guard watchSession.activationState == .activated, watchSession.isReachable else {
@@ -343,6 +365,12 @@ final class WatchRecorder: NSObject, ObservableObject {
             if isRecording { clearPendingStartControlRetry() }
             return
         }
+        guard let timestamp = message["controlTimestamp"] as? TimeInterval,
+              Date().timeIntervalSince1970 - timestamp < 30 else {
+            clearPendingStartControlRetry()
+            controlStatus = "开始请求已过期，请重新点击"
+            return
+        }
         guard controlRetryAttempt < 15 else {
             controlRetryTimer?.invalidate()
             controlRetryTimer = nil
@@ -370,6 +398,7 @@ final class WatchRecorder: NSObject, ObservableObject {
                     self.lastError = nil
                     self.reconcilePhoneState(from: reply)
                 } else {
+                    self.clearPendingStartControlRetry()
                     self.controlStatus = "iPhone 未执行命令"
                     self.lastError = reply["error"] as? String ?? "全系统控制失败"
                 }
@@ -381,7 +410,8 @@ final class WatchRecorder: NSObject, ObservableObject {
                 self.phoneReachable = WCSession.default.isReachable
                 self.controlStatus = "连接波动，继续自动重试"
                 self.hasTransientConnectivityError = true
-                self.lastError = "即时发送失败（第 \(self.controlRetryAttempt) 次）：\(error.localizedDescription)"
+                let e = error as NSError
+                self.lastError = "开始请求失败（第 \(self.controlRetryAttempt) 次）[\(e.domain) \(e.code)]：\(e.localizedDescription)"
             }
         }
     }
@@ -398,6 +428,7 @@ final class WatchRecorder: NSObject, ObservableObject {
     /// guaranteed background delivery to the iPhone.
     private func queueReliableStop(_ message: [String: Any], using watchSession: WCSession,
                                    immediateError: Error? = nil) {
+        pendingStopMessage = message
         watchSession.transferUserInfo(message)
         if isRecording { stop() }
         isControlPending = false
@@ -408,9 +439,51 @@ final class WatchRecorder: NSObject, ObservableObject {
         } else {
             lastError = "iPhone 暂不可达；停止命令已排队，手表已停止"
         }
+        retryPendingStop()
+    }
+
+    private func retryPendingStop() {
+        guard let message = pendingStopMessage else { return }
+        if stopRetryTimer == nil {
+            stopRetryTimer = .scheduledTimer(withTimeInterval: 3, repeats: true) { [weak self] _ in
+                Task { @MainActor in self?.retryPendingStop() }
+            }
+        }
+        guard !stopRequestInFlight, WCSession.default.activationState == .activated,
+              WCSession.default.isReachable else { return }
+        stopRequestInFlight = true
+        WCSession.default.sendMessage(message) { [weak self] reply in
+            Task { @MainActor in
+                guard let self else { return }
+                self.stopRequestInFlight = false
+                if reply["accepted"] as? Bool == true {
+                    self.confirmStoppedSession(message["sessionID"] as? String)
+                }
+            }
+        } errorHandler: { [weak self] error in
+            Task { @MainActor in
+                self?.stopRequestInFlight = false
+                let e = error as NSError
+                self?.lastError = "停止确认失败 [\(e.domain) \(e.code)]：\(e.localizedDescription)"
+            }
+        }
+    }
+
+    private func confirmStoppedSession(_ id: String?) {
+        guard let id, id == pendingStopMessage?["sessionID"] as? String else { return }
+        pendingStopMessage = nil
+        stopRetryTimer?.invalidate()
+        stopRetryTimer = nil
+        isControlPending = false
+        lastError = nil
+        controlStatus = "手机已确认停止，文件后台传输中"
     }
 
     private func requestSystemStatus() {
+        if pendingStopMessage != nil {
+            retryPendingStop()
+            return
+        }
         let watchSession = WCSession.default
         phoneReachable = watchSession.isReachable
         guard watchSession.activationState == .activated, watchSession.isReachable else {
@@ -435,12 +508,17 @@ final class WatchRecorder: NSObject, ObservableObject {
     /// WatchConnectivity. Reconciling here makes a Watch button press take
     /// effect locally as soon as the phone acknowledges it.
     private func reconcilePhoneState(from reply: [String: Any]) {
+        if pendingStopMessage != nil {
+            retryPendingStop()
+            return
+        }
         let active = reply["isRecording"] as? Bool ?? false
         if active {
             guard let phoneSessionID = reply["sessionID"] as? String else {
                 controlStatus = "iPhone 已启动，等待会话信息"
                 return
             }
+            guard phoneSessionID != UserDefaults.standard.string(forKey: "sensorread.lastStoppedSession.v2") else { return }
             let audioStartUnixS = reply["audioStartUnixS"] as? TimeInterval
             let folderName = reply["sessionFolderName"] as? String
             if !isRecording {
@@ -470,7 +548,6 @@ final class WatchRecorder: NSObject, ObservableObject {
         let event = SensorEvent(sessionID: sessionID, source: "apple_watch", sensor: sensor,
                                 timestamp: wallTime, monotonic: monotonicTime,
                                 sequenceNumber: sequence, values: finiteValues)
-        pendingEvents.append(event)
         localEventSink.write(event)
         eventCount += 1
     }
@@ -835,7 +912,6 @@ final class WatchRecorder: NSObject, ObservableObject {
         ])
         if WCSession.default.isReachable {
             WCSession.default.sendMessage(message, replyHandler: nil) { failedMessage in
-                WCSession.default.transferUserInfo(message)
                 Task { @MainActor [weak self] in
                     self?.send(sensor: "uwb_status", values: [
                         "stage": 21,
@@ -843,8 +919,6 @@ final class WatchRecorder: NSObject, ObservableObject {
                     ])
                 }
             }
-        } else {
-            WCSession.default.transferUserInfo(message)
         }
     }
 
@@ -872,22 +946,6 @@ final class WatchRecorder: NSObject, ObservableObject {
     }
 #endif
 
-    private func flush() {
-        while !pendingEvents.isEmpty {
-            let count = min(25, pendingEvents.count)
-            let batch = Array(pendingEvents.prefix(count))
-            pendingEvents.removeFirst(count)
-            guard let data = try? JSONEncoder().encode(batch) else { continue }
-            let message: [String: Any] = ["events": data]
-            if WCSession.default.isReachable {
-                WCSession.default.sendMessage(message, replyHandler: nil) { _ in
-                    WCSession.default.transferUserInfo(message)
-                }
-            } else {
-                WCSession.default.transferUserInfo(message)
-            }
-        }
-    }
 }
 
 extension WatchRecorder: CLLocationManagerDelegate {
@@ -1008,6 +1066,10 @@ extension WatchRecorder: WCSessionDelegate {
                 hasTransientConnectivityError = true
                 lastError = error.localizedDescription
             } else {
+                // Discard only legacy live-stream backlog; local recordings and file transfers remain.
+                for transfer in session.outstandingUserInfoTransfers where transfer.userInfo["events"] != nil {
+                    transfer.cancel()
+                }
                 retryPendingFileTransfers()
                 if let pendingStartControlMessage, controlRetryTimer == nil {
                     queueStartControlRetry(pendingStartControlMessage, resetAttempts: true)
@@ -1072,12 +1134,18 @@ extension WatchRecorder: WCSessionDelegate {
         let folderName = message["sessionFolderName"] as? String
         Task { @MainActor in
             if command == "stop" {
+                confirmStoppedSession(receivedSessionID)
+                guard !isRecording || receivedSessionID == sessionID else { return }
                 if !isRecording || receivedSessionID == sessionID { stop() }
                 isControlPending = false
                 controlStatus = "全系统已停止"
                 return
             }
             if command == "start", !isRecording {
+                guard pendingStopMessage == nil,
+                      receivedSessionID != UserDefaults.standard.string(forKey: "sensorread.lastStoppedSession.v2"),
+                      let issuedAt = message["issuedAt"] as? TimeInterval,
+                      abs(Date().timeIntervalSince1970 - issuedAt) < 30 else { return }
                 start(sessionID: receivedSessionID, sessionFolderName: folderName,
                       peerTokenData: token,
                       audioStartUnixS: audioStartUnixS)

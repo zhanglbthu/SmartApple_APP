@@ -9,7 +9,7 @@
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>CFBundleDisplayName</key><string>Sensor Read</string>
   <key>CFBundleShortVersionString</key><string>1.0</string>
-  <key>CFBundleVersion</key><string>7</string>
+  <key>CFBundleVersion</key><string>9</string>
   <key>UIFileSharingEnabled</key><true/>
   <key>LSSupportsOpeningDocumentsInPlace</key><true/>
   <key>NSMotionUsageDescription</key><string>用于采集 iPhone 与 AirPods 的运动传感器数据。</string>

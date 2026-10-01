@@ -11,7 +11,7 @@ struct SensorReadWatchApp: App {
                     Image(systemName: recorder.isRecording ? "waveform.circle.fill" : "waveform.circle")
                         .font(.system(size: 34))
                         .foregroundStyle(recorder.isRecording ? .green : .secondary)
-                    Text(recorder.isRecording ? "全系统采集中" : "全系统已停止")
+                    Text(recorder.isRecording ? "手表本地采集中" : "手表已停止")
                         .font(.headline)
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
@@ -36,6 +36,10 @@ struct SensorReadWatchApp: App {
                             .foregroundStyle(.orange)
                             .lineLimit(2)
                     }
+                    Text(recorder.fileTransferStatus)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
                     Button {
                         recorder.requestSystemToggle()
                     } label: {
