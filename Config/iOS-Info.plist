@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>CFBundleDevelopmentRegion</key><string>$(DEVELOPMENT_LANGUAGE)</string>
+  <key>CFBundleExecutable</key><string>$(EXECUTABLE_NAME)</string>
+  <key>CFBundleIdentifier</key><string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+  <key>CFBundleInfoDictionaryVersion</key><string>6.0</string>
+  <key>CFBundleName</key><string>$(PRODUCT_NAME)</string>
+  <key>CFBundlePackageType</key><string>APPL</string>
+  <key>CFBundleDisplayName</key><string>Sensor Read</string>
+  <key>CFBundleShortVersionString</key><string>1.0</string>
+  <key>CFBundleVersion</key><string>7</string>
+  <key>UIFileSharingEnabled</key><true/>
+  <key>LSSupportsOpeningDocumentsInPlace</key><true/>
+  <key>NSMotionUsageDescription</key><string>用于采集 iPhone 与 AirPods 的运动传感器数据。</string>
+  <key>NSMicrophoneUsageDescription</key><string>用于同步采集 iPhone 麦克风音频，以进行多模态人体动作识别研究。</string>
+  <key>NSLocationWhenInUseUsageDescription</key><string>用于在传感器实验中同步采集位置、速度和海拔。</string>
+  <key>NSLocationAlwaysAndWhenInUseUsageDescription</key><string>用于息屏实验中持续同步采集位置及其他传感器数据。</string>
+  <key>NSLocalNetworkUsageDescription</key><string>用于把实时传感器数据发送到同一网络中的实验电脑。</string>
+  <key>NSCameraUsageDescription</key><string>用于可选的 ARKit 三维人体骨架动作捕捉。</string>
+  <key>NSNearbyInteractionUsageDescription</key><string>用于测量 iPhone 与配对 Apple Watch 之间的相对距离和方向。</string>
+  <key>UIBackgroundModes</key><array><string>audio</string><string>location</string><string>nearby-interaction</string></array>
+  <key>UILaunchScreen</key><dict/>
+  <key>UISupportedInterfaceOrientations</key><array><string>UIInterfaceOrientationPortrait</string></array>
+</dict></plist>

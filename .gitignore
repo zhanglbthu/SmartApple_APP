@@ -1,0 +1,14 @@
+.DS_Store
+DerivedData/
+build/
+*.xcuserstate
+xcuserdata/
+__pycache__/
+.tools/
+*.p12
+*.pem
+*.mobileprovision
+*.ndjson
+*.wav
+recordings/
+*.xcresult/

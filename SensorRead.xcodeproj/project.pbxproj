@@ -1,0 +1,480 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0F3DE4AD5659F81E02823F2E /* SensorEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E9F64FBB22A44265831A056 /* SensorEvent.swift */; };
+		1D5E65E2FE14B794FB39EB52 /* AudioCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61B6B9AF41016B21745D2F5F /* AudioCapture.swift */; };
+		2B7310C108E531532311C63E /* SensorRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF34E3090D8118613AE5D469 /* SensorRecorder.swift */; };
+		5004467604E0839C93817380 /* SensorReadApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E2654336EFF16A7AD6422FF /* SensorReadApp.swift */; };
+		66EBC6D98FEABF7F78B6165F /* EventSink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D17E6559ECC1BE674663020 /* EventSink.swift */; };
+		72CA232E7D22230422737E4C /* WatchRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC2EE563D7498296B3B3589C /* WatchRecorder.swift */; };
+		85AEACD28EB94D086CAC738E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 55D900561006038ADBD60C46 /* Assets.xcassets */; };
+		8BB7F5FFDAB9E834C114E8C4 /* WatchEventSink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B1BA2309E2CE936AFC6B578 /* WatchEventSink.swift */; };
+		8FF3427B49D152984D4A30B5 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB6846D7CA425AB108F612F0 /* ContentView.swift */; };
+		9B56A9FAE70867B45ADBDF5F /* SensorEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E9F64FBB22A44265831A056 /* SensorEvent.swift */; };
+		A145FEBECF5B45768E9D002D /* AudioCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61B6B9AF41016B21745D2F5F /* AudioCapture.swift */; };
+		A4EE9BE06AC185C570F5709A /* SensorReadWatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A8916047794E01560AD3BFC /* SensorReadWatchApp.swift */; };
+		D440B75C5231B698372238D7 /* SensorReadWatch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 7F9A4873A1326B070A9B6F4B /* SensorReadWatch.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		F789DDA6FE7EE1499BFD952E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8F7F1FAB48B9B1E32DCFDD6B /* Assets.xcassets */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		B7C88D5633430A25CEA692A7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DC785F70F57AAD7F52451343 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B4E6571CAFE9049500337C1B;
+			remoteInfo = SensorReadWatch;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		07A996A4DDBEC9D596AE261E /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				D440B75C5231B698372238D7 /* SensorReadWatch.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		0B1BA2309E2CE936AFC6B578 /* WatchEventSink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchEventSink.swift; sourceTree = "<group>"; };
+		1E2654336EFF16A7AD6422FF /* SensorReadApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SensorReadApp.swift; sourceTree = "<group>"; };
+		55D900561006038ADBD60C46 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		5E9F64FBB22A44265831A056 /* SensorEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SensorEvent.swift; sourceTree = "<group>"; };
+		61B6B9AF41016B21745D2F5F /* AudioCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioCapture.swift; sourceTree = "<group>"; };
+		7D17E6559ECC1BE674663020 /* EventSink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventSink.swift; sourceTree = "<group>"; };
+		7F9A4873A1326B070A9B6F4B /* SensorReadWatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SensorReadWatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		8A8916047794E01560AD3BFC /* SensorReadWatchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SensorReadWatchApp.swift; sourceTree = "<group>"; };
+		8F7F1FAB48B9B1E32DCFDD6B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		B0E776205A2DB3D976C02F58 /* SensorRead.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = SensorRead.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		BB6846D7CA425AB108F612F0 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		CF34E3090D8118613AE5D469 /* SensorRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SensorRecorder.swift; sourceTree = "<group>"; };
+		EC2EE563D7498296B3B3589C /* WatchRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchRecorder.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		3BC04D550BF72FD9A39582F8 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				61B6B9AF41016B21745D2F5F /* AudioCapture.swift */,
+				5E9F64FBB22A44265831A056 /* SensorEvent.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		999DBA39B48EC86DE2420DF7 /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				8F7F1FAB48B9B1E32DCFDD6B /* Assets.xcassets */,
+				BB6846D7CA425AB108F612F0 /* ContentView.swift */,
+				7D17E6559ECC1BE674663020 /* EventSink.swift */,
+				1E2654336EFF16A7AD6422FF /* SensorReadApp.swift */,
+				CF34E3090D8118613AE5D469 /* SensorRecorder.swift */,
+			);
+			path = iOS;
+			sourceTree = "<group>";
+		};
+		A8EF531CF923AE0F585AEEA5 /* Watch */ = {
+			isa = PBXGroup;
+			children = (
+				55D900561006038ADBD60C46 /* Assets.xcassets */,
+				8A8916047794E01560AD3BFC /* SensorReadWatchApp.swift */,
+				0B1BA2309E2CE936AFC6B578 /* WatchEventSink.swift */,
+				EC2EE563D7498296B3B3589C /* WatchRecorder.swift */,
+			);
+			path = Watch;
+			sourceTree = "<group>";
+		};
+		BDB44B6A36693F2FACA4A289 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				B0E776205A2DB3D976C02F58 /* SensorRead.app */,
+				7F9A4873A1326B070A9B6F4B /* SensorReadWatch.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		FF1285B1A99CCF390A3B72C7 = {
+			isa = PBXGroup;
+			children = (
+				999DBA39B48EC86DE2420DF7 /* iOS */,
+				3BC04D550BF72FD9A39582F8 /* Shared */,
+				A8EF531CF923AE0F585AEEA5 /* Watch */,
+				BDB44B6A36693F2FACA4A289 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		0D986E881FA1EE1D7C17D854 /* SensorRead */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 503183CDC526EE6AB711D2FE /* Build configuration list for PBXNativeTarget "SensorRead" */;
+			buildPhases = (
+				B4771983ACEACBAABC6B8606 /* Sources */,
+				B83D5DA5B2A1C4ED5C3CF7B3 /* Resources */,
+				07A996A4DDBEC9D596AE261E /* Embed Watch Content */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				8486367F731D8764769527F2 /* PBXTargetDependency */,
+			);
+			name = SensorRead;
+			packageProductDependencies = (
+			);
+			productName = SensorRead;
+			productReference = B0E776205A2DB3D976C02F58 /* SensorRead.app */;
+			productType = "com.apple.product-type.application";
+		};
+		B4E6571CAFE9049500337C1B /* SensorReadWatch */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CA63DCE03EEE633C3C1713BE /* Build configuration list for PBXNativeTarget "SensorReadWatch" */;
+			buildPhases = (
+				73774516BA83EA527E252194 /* Sources */,
+				7AAC24183F63528D57CA859B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = SensorReadWatch;
+			packageProductDependencies = (
+			);
+			productName = SensorReadWatch;
+			productReference = 7F9A4873A1326B070A9B6F4B /* SensorReadWatch.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		DC785F70F57AAD7F52451343 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					0D986E881FA1EE1D7C17D854 = {
+						DevelopmentTeam = P95S5Q4QHB;
+						ProvisioningStyle = Automatic;
+					};
+					B4E6571CAFE9049500337C1B = {
+						DevelopmentTeam = P95S5Q4QHB;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = FCADD123FAC8C14C718916F9 /* Build configuration list for PBXProject "SensorRead" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = FF1285B1A99CCF390A3B72C7;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = BDB44B6A36693F2FACA4A289 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				0D986E881FA1EE1D7C17D854 /* SensorRead */,
+				B4E6571CAFE9049500337C1B /* SensorReadWatch */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		7AAC24183F63528D57CA859B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				85AEACD28EB94D086CAC738E /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B83D5DA5B2A1C4ED5C3CF7B3 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F789DDA6FE7EE1499BFD952E /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		73774516BA83EA527E252194 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A145FEBECF5B45768E9D002D /* AudioCapture.swift in Sources */,
+				9B56A9FAE70867B45ADBDF5F /* SensorEvent.swift in Sources */,
+				A4EE9BE06AC185C570F5709A /* SensorReadWatchApp.swift in Sources */,
+				8BB7F5FFDAB9E834C114E8C4 /* WatchEventSink.swift in Sources */,
+				72CA232E7D22230422737E4C /* WatchRecorder.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B4771983ACEACBAABC6B8606 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1D5E65E2FE14B794FB39EB52 /* AudioCapture.swift in Sources */,
+				8FF3427B49D152984D4A30B5 /* ContentView.swift in Sources */,
+				66EBC6D98FEABF7F78B6165F /* EventSink.swift in Sources */,
+				0F3DE4AD5659F81E02823F2E /* SensorEvent.swift in Sources */,
+				5004467604E0839C93817380 /* SensorReadApp.swift in Sources */,
+				2B7310C108E531532311C63E /* SensorRecorder.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		8486367F731D8764769527F2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B4E6571CAFE9049500337C1B /* SensorReadWatch */;
+			targetProxy = B7C88D5633430A25CEA692A7 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		1F80C2541E1706A339A9EE45 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Config/iOS.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "Config/iOS-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.sensorread.ios;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		34F968E2B4C2AF368E74AAD0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Config/iOS.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "Config/iOS-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.sensorread.ios;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		3FB4DF141E58120C8694E8F9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Config/Watch.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "Config/Watch-Info.plist";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.sensorread.ios;
+				INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.sensorread.ios.watchkitapp;
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 4;
+			};
+			name = Release;
+		};
+		456540ECD72DA7D229C6A9E3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = P95S5Q4QHB;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.9;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Debug;
+		};
+		72332D6CF2465A4B89B75537 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = P95S5Q4QHB;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.9;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Release;
+		};
+		E51FA526D6E6A4A455DA713D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Config/Watch.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "Config/Watch-Info.plist";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.sensorread.ios;
+				INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.sensorread.ios.watchkitapp;
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 4;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		503183CDC526EE6AB711D2FE /* Build configuration list for PBXNativeTarget "SensorRead" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1F80C2541E1706A339A9EE45 /* Debug */,
+				34F968E2B4C2AF368E74AAD0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		CA63DCE03EEE633C3C1713BE /* Build configuration list for PBXNativeTarget "SensorReadWatch" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E51FA526D6E6A4A455DA713D /* Debug */,
+				3FB4DF141E58120C8694E8F9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		FCADD123FAC8C14C718916F9 /* Build configuration list for PBXProject "SensorRead" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				456540ECD72DA7D229C6A9E3 /* Debug */,
+				72332D6CF2465A4B89B75537 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = DC785F70F57AAD7F52451343 /* Project object */;
+}
